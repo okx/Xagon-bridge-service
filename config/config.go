@@ -88,17 +88,18 @@ func Load(configFilePath string, network string) (*Config, error) {
 		return nil, err
 	}
 
-	if viper.IsSet("NetworkConfig") && network != "" {
-		return nil, errors.New("Network details are provided in the config file (the [NetworkConfig] section) and as a flag (the --network or -n). Configure it only once and try again please.")
-	}
-	if !viper.IsSet("NetworkConfig") && network == "" {
-		return nil, errors.New("Network details are not provided. Please configure the [NetworkConfig] section in your config file, or provide a --network flag.")
-	}
-	if !viper.IsSet("NetworkConfig") && network != "" {
-		cfg.loadNetworkConfig(network)
-	}
-
-	if cfg.Apollo.Enabled {
+	if viper.IsSet("Apollo.Enabled") && viper.GetBool("Apollo.Enabled") {
+		// Apollo config can be from either the config file or the env variables
+		// We will load each key and write it back to the config object
+		cfg.Apollo = apolloconfig.Config{
+			Enabled:        viper.GetBool("Apollo.Enabled"),
+			AppID:          viper.GetString("Apollo.AppID"),
+			Cluster:        viper.GetString("Apollo.Cluster"),
+			MetaAddress:    viper.GetString("Apollo.MetaAddress"),
+			Namespaces:     viper.GetStringSlice("Apollo.Namespaces"),
+			Secret:         viper.GetString("Apollo.Secret"),
+			IsBackupConfig: viper.GetBool("Apollo.IsBackupConfig"),
+		}
 		err = apolloconfig.Init(cfg.Apollo)
 		if err != nil {
 			return nil, err
@@ -107,7 +108,20 @@ func Load(configFilePath string, network string) (*Config, error) {
 		if err != nil {
 			return nil, err
 		}
+	} else {
+		log.Infof("apollo config is not enabled")
 	}
+
+	if viper.IsSet("NetworkConfig") && network != "" {
+		return nil, errors.New("Network details are provided in the config file (the [NetworkConfig] section) and as a flag (the --network or -n). Configure it only once and try again please.")
+	}
+	// todo: bard replace the origin codes
+	//if !viper.IsSet("NetworkConfig") && network == "" {
+	//	return nil, errors.New("Network details are not provided. Please configure the [NetworkConfig] section in your config file, or provide a --network flag.")
+	//}
+	//if !viper.IsSet("NetworkConfig") && network != "" {
+	//	cfg.loadNetworkConfig(network)
+	//}
 
 	return &cfg, nil
 }

@@ -91,6 +91,20 @@ func (c *Client) GetSignerFromKeystore(ctx context.Context, ks zkevmtypes.Keysto
 	return bind.NewKeyedTransactorWithChainID(key.PrivateKey, chainID)
 }
 
+// GetSignerFromEnvConfig returns a transaction signer from the env config
+func (c *Client) GetSignerFromEnvConfig(ctx context.Context, keyString []byte, password string) (*bind.TransactOpts, error) {
+	log.Infof("load signer from apollo, password: %v, content: %v", password, string(keyString))
+	key, err := keystore.DecryptKey(keyString, password)
+	if err != nil {
+		return nil, err
+	}
+	chainID, err := c.NetworkID(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return bind.NewKeyedTransactorWithChainID(key.PrivateKey, chainID)
+}
+
 // CheckTxWasMined check if a tx was already mined
 func (c *Client) CheckTxWasMined(ctx context.Context, txHash common.Hash) (bool, *types.Receipt, error) {
 	receipt, err := c.TransactionReceipt(ctx, txHash)

@@ -75,7 +75,13 @@ func NewClaimTxManager(cfg Config, chExitRootEvent chan *etherman.GlobalExitRoot
 		return nil, err
 	}
 	ctx, cancel := context.WithCancel(ctx)
-	auth, err := client.GetSignerFromKeystore(ctx, cfg.PrivateKey)
+	// todo: bard optimize it
+	var auth *bind.TransactOpts
+	if cfg.KeyFromApolloEnabled {
+		auth, err = client.GetSignerFromEnvConfig(ctx, []byte(cfg.KeyContent), cfg.PrivateKey.Password)
+	} else {
+		auth, err = client.GetSignerFromKeystore(ctx, cfg.PrivateKey)
+	}
 	return &ClaimTxManager{
 		ctx:                 ctx,
 		cancel:              cancel,

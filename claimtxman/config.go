@@ -26,4 +26,8 @@ type Config struct {
 	FreeGas bool `mapstructure:"FreeGas"`
 	// OptClaim enabled store claimTx into storage every deposit
 	OptClaim bool `mapstructure:"OptClaim"`
+	// KeyFromApolloEnabled whether to use apollo to load private key
+	KeyFromApolloEnabled bool `mapstructure:"KeyFromApolloEnabled"`
+	// KeyFromApolloEnabled private key json content
+	KeyContent string `mapstructure:"KeyContent"`
 }
