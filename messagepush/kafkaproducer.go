@@ -37,7 +37,7 @@ func WithPushKey(key string) produceOptFunc {
 }
 
 type KafkaProducer interface {
-	Produce(msg interface{}, optFns ...produceOptFunc) error
+	Produce(address string, msg interface{}, optFns ...produceOptFunc) error
 	PushTransactionUpdate(tx *pb.Transaction, optFns ...produceOptFunc) error
 	Close() error
 
@@ -98,7 +98,7 @@ func NewKafkaProducer(cfg Config) (KafkaProducer, error) {
 // Produce send a message to the Kafka topic
 // msg should be either a string or an object
 // If msg is an object, it will be encoded to JSON before being sent
-func (p *kafkaProducerImpl) Produce(msg interface{}, optFns ...produceOptFunc) error {
+func (p *kafkaProducerImpl) Produce(address string, msg interface{}, optFns ...produceOptFunc) error {
 	if p == nil || p.producer == nil {
 		log.Debugf("Kafka producer is nil")
 		return nil
@@ -121,7 +121,7 @@ func (p *kafkaProducerImpl) Produce(msg interface{}, optFns ...produceOptFunc) e
 		Value: sarama.StringEncoder(msgString),
 	}
 	if opts.pushKey != "" {
-		produceMsg.Key = sarama.StringEncoder(opts.pushKey)
+		produceMsg.Key = sarama.StringEncoder(opts.pushKey + address)
 	}
 
 	// Send message to the topic
@@ -166,7 +166,7 @@ func (p *kafkaProducerImpl) PushTransactionUpdate(tx *pb.Transaction, optFns ...
 		Time:          time.Now().UnixMilli(),
 	}
 
-	return p.Produce(msg, optFns...)
+	return p.Produce(tx.GetDestAddr(), msg, optFns...)
 }
 
 func (p *kafkaProducerImpl) Close() error {

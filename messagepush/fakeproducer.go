@@ -30,7 +30,7 @@ func newFakeProducer(cfg Config) KafkaProducer {
 	}
 }
 
-func (p *fakeProducer) Produce(msg interface{}, optFns ...produceOptFunc) error {
+func (p *fakeProducer) Produce(address string, msg interface{}, optFns ...produceOptFunc) error {
 	opts := &produceOptions{
 		topic:   p.defaultTopic,
 		pushKey: p.defaultPushKey,
@@ -84,7 +84,7 @@ func (p *fakeProducer) PushTransactionUpdate(tx *pb.Transaction, optFns ...produ
 		Time:          time.Now().UnixMilli(),
 	}
 
-	return p.Produce(msg, optFns...)
+	return p.Produce(tx.GetDestAddr(), msg, optFns...)
 }
 
 func (p *fakeProducer) Close() error {
